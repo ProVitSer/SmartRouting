@@ -15,7 +15,17 @@ class Soap {
         logger.info(`getNumber данные  ${params}`);
         let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
 
-        let xml = config.xml
+	//params[0] - Входящий номер, params[1] - номер куда звонят, params[2] время вызова <ret:Number1>${params[1]}</ret:Number1> <ret:DateTime>${params[2]}</ret:DateTime>
+	//Парсинг ответа ['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text']
+        let xml = `<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ret="ReturnNumber">
+		<soap:Header/>
+		  <soap:Body>
+		   <ret:ReturnNumber>
+		      <ret:Number>${params[0]}</ret:Number>
+		   </ret:ReturnNumber>
+		  </soap:Body>
+		</soap:Envelope>`
+
 
         let config = {
             headers: {
