@@ -19,7 +19,7 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
     function(err, ari) {
         ari.on('StasisStart',
             function(event, incoming) {
-                let timestamp = moment().format("YYYY/MM/DD HH:mm:ss");
+                let timestamp = moment().format("YYYY-MM-DDTHH:mm:ss");
                 channelId = event.channel.id;
                 logger.info(`Вызов попал в Stasis ${util.inspect(event)}`);
                 if (event.channel.dialplan.context == 'beronet') {
