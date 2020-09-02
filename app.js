@@ -33,8 +33,7 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                     incomingNumber = event.channel.caller.number.replace("7", "8").replace(/\D+/g, "")
                 }
 		logger.info(`${incomingNumber} ${timestamp} ${dialExtension}`);
-		soap.getNumber(incomingNumber)
-                //soap.getNumber(incomingNumber, dialExtension, timestamp)
+                soap.getNumber(incomingNumber, dialExtension, timestamp)
                     .then(
                         result => {
                             logger.info(`Со стороны 1С вернулся результат ${result}`);
