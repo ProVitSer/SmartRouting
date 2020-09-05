@@ -17,13 +17,14 @@ class Soap {
 
 	//params[0] - Входящий номер, params[1] - номер куда звонят, params[2] время поступления входящего вызова
 	//Парсинг ответа ['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text']
+	params[1] = params[1].length > 8 ?  params[1] : "8495" + params[1];
         let xml = `<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ret="ReturnNumber">
 		<soap:Header/>
 		  <soap:Body>
 		   <ret:ReturnNumber>
 		      <ret:Number>${params[0]}</ret:Number>
 		      <ret:Number1>${params[1]}</ret:Number1>
-		      <ret:DateTime>${params[2]}</ret:DateTime>
+                      <ret:DateTime>${params[2]}</ret:DateTime>
 		   </ret:ReturnNumber>
 		  </soap:Body>
 		</soap:Envelope>`
@@ -38,7 +39,7 @@ class Soap {
             }
         }
 
-        logger.info(`Отправляем запрос`);
+        logger.info(`Отправляем запрос ${xml}`);
         const res = await axios.post(this.url, xml, config)
         const result = await res;
 
