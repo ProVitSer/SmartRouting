@@ -30,11 +30,11 @@ app.get('/rest*',(req, res) => {
     soap.getNumber(incomingNumber, dialExtension, timestamp)
     .then(
     	result => {
-          console.log(result)
+          logger.info(result)
     	}
     )
     .catch(error => {
-    	console.log(error)
+    	logger.error(error)
     });
 });
 
