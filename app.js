@@ -4,16 +4,14 @@ const convert = require('xml-js'),
     client = require(`ari-client`),
     moment = require('moment'),
     Soap = require('./soap'),
-    logger = require('./logger'),
+    logger = require('./logger/logger'),
     trunkDialplan = require('./trunk'),
-    config = require(`./config`);
+    config = require(`./config/config`);
 
 const LOCAL_ROUTING = 'RouteToLocalUser';
 const DEFAULT_ROUTING = 'RouteToDefaultIncomingRoute';
 const soap = new Soap();
-let channelId;
-let dialExtension;
-let incomingNumber;
+let channelId, dialExtension, incomingNumber;
 
 client.connect(config.ari.host, config.ari.username, config.ari.secret,
     function(err, ari) {
@@ -32,21 +30,23 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                 } else {
                     incomingNumber = event.channel.caller.number.replace("7", "8").replace(/\D+/g, "")
                 }
-		logger.info(`${incomingNumber} ${timestamp} ${dialExtension}`);
-                soap.getNumber(incomingNumber, dialExtension, timestamp)
+                logger.info(`${incomingNumber} ${timestamp} ${dialExtension} ${channelId}`);
+                soap.getNumber(incomingNumber, dialExtension, timestamp, channelId)
                     .then(
                         result => {
                             logger.info(`Со стороны 1С вернулся результат ${result}`);
                             let jsonResult = JSON.parse(convert.xml2json(result, { compact: true, spaces: 7 }));
-                            jsonResult = jsonResult['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text'];
+                            jsonResult = jsonResult['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text'].split(';');
                             logger.info(`После преобразования получаем объект в котором находиться внутренний номер или  его отсутствие ${jsonResult}`);
-                            if (jsonResult && jsonResult.length == 3) {
-                                dialExtension = jsonResult;
+                            if (jsonResult && jsonResult[0].length == 3 && jsonResult[0] != "000") {
+                                dialExtension = jsonResult[0];
+                                let returnChannelId = jsonResult[1];
                                 logger.info(`Был найден привязанный внутренний номер ${dialExtension} вызов пошел по маршруту ${LOCAL_ROUTING}`);
-                                continueDialplan(channelId, LOCAL_ROUTING, dialExtension);
+                                continueDialplan(returnChannelId, LOCAL_ROUTING, dialExtension);
                             } else {
-                                logger.info(`Привязка не найдена вызов пошел по маршруту ${DEFAULT_ROUTING}`);
-                                continueDialplan(channelId, DEFAULT_ROUTING, dialExtension);
+                                console.log(`Привязка не найдена вызов пошел по маршруту ${DEFAULT_ROUTING}`);
+                                let returnChannelId = jsonResult[1];
+                                continueDialplan(returnChannelId, DEFAULT_ROUTING, dialExtension);
                             }
                         }
                     )
@@ -57,9 +57,9 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                     });
             });
 
-        function continueDialplan(channelId, dialplanContext, dialExtension) {
+        function continueDialplan(returnChannelId, dialplanContext, dialExtension) {
             logger.info(`Перенаправляем вызов в по нужному маршруту ${channelId}  ${dialplanContext}  ${dialExtension}`);
-            ari.channels.continueInDialplan({ channelId: channelId, context: dialplanContext, extension: dialExtension },
+            ari.channels.continueInDialplan({ channelId: returnChannelId, context: dialplanContext, extension: dialExtension },
                 function(err) {
                     logger.info(`Ошибка отправки вызова через ari ${err}`);
                 }
