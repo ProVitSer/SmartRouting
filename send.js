@@ -42,22 +42,23 @@ app.get('/sendNotWorkinTimeInfo*', (req, res) => {
 app.get('/send3cxIdModelId*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
-    console.log(queryData);
-    search3cxId(queryData.incomingNumber.slice(1), queryData.unicueid);
+    logger.info(queryData);
+    setTimeout(search3cxId, 5000, queryData.incomingNumber.slice(1), queryData.unicueid);
+    //search3cxId(queryData.incomingNumber.slice(1), queryData.unicueid);
 });
 
 
 const search3cxId = (incomingNumber, unicueid) => {
-    db.any(`SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id LIMIT 1);`)
+    db.any(`SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1);`)
         .then(
             queue => {
-                console.log(queue);
-                console.log(queue[0].call_id, unicueid)
+                logger.info(queue);
+                logger.info(queue[0].call_id, unicueid)
                 soap.sendInfoAfterHangup(unicueid, queue[0].call_id);
             }
         )
         .catch(error => {
-            console.log(util.inspect(error));
+            logger.error(util.inspect(error));
         });
 };
 
