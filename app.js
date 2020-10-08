@@ -11,7 +11,7 @@ const convert = require('xml-js'),
 const LOCAL_ROUTING = 'RouteToLocalUser';
 const DEFAULT_ROUTING = 'RouteToDefaultIncomingRoute';
 const soap = new Soap();
-let channelId, dialExtension, incomingNumber;
+let channelId, dialExtension, incomingNumber, dialTrunk = [];
 
 client.connect(config.ari.host, config.ari.username, config.ari.secret,
     function(err, ari) {
@@ -22,8 +22,10 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                 logger.info(`Вызов попал в Stasis ${util.inspect(event)}`);
                 if (event.channel.dialplan.context == 'beronet') {
                     dialExtension = event.args[0];
+		    dialTrunk[channelId] = { 'context': event.args[0]};
                 } else {
                     dialExtension = trunkDialplan[event.channel.dialplan.context];
+		    dialTrunk[channelId] = { 'context': event.channel.dialplan.context};
                 }
                 if (event.channel.caller.number.length == 10) {
                     incomingNumber = '8' + event.channel.caller.number
@@ -39,14 +41,14 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                             jsonResult = jsonResult['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text'].split(';');
                             logger.info(`После преобразования получаем объект в котором находиться внутренний номер или  его отсутствие ${jsonResult}`);
                             if (jsonResult && jsonResult[0].length == 3 && jsonResult[0] != "000") {
-                                dialExtension = jsonResult[0];
-                                let returnChannelId = jsonResult[1];
-                                logger.info(`Был найден привязанный внутренний номер ${dialExtension} вызов пошел по маршруту ${LOCAL_ROUTING}`);
-                                continueDialplan(returnChannelId, LOCAL_ROUTING, dialExtension);
+                                //let returnDialExtension = jsonResult[0];
+                                //let returnChannelId = jsonResult[1];
+                                logger.info(`Был найден привязанный внутренний номер ${jsonResult[0]} ${jsonResult[1]} вызов пошел по маршруту ${LOCAL_ROUTING}`);
+                                continueDialplan(jsonResult[1], LOCAL_ROUTING, jsonResult[0]);
                             } else {
-                                console.log(`Привязка не найдена вызов пошел по маршруту ${DEFAULT_ROUTING}`);
-                                let returnChannelId = jsonResult[1];
-                                continueDialplan(returnChannelId, DEFAULT_ROUTING, dialExtension);
+                                logger.info(`Привязка не найдена ${jsonResult[1]} вызов пошел по маршруту ${DEFAULT_ROUTING}`);
+                                //let returnChannelId = jsonResult[1];
+                                continueDialplan(jsonResult[1], DEFAULT_ROUTING,dialExtension);
                             }
                         }
                     )
@@ -57,9 +59,11 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                     });
             });
 
-        function continueDialplan(returnChannelId, dialplanContext, dialExtension) {
-            logger.info(`Перенаправляем вызов в по нужному маршруту ${channelId}  ${dialplanContext}  ${dialExtension}`);
-            ari.channels.continueInDialplan({ channelId: returnChannelId, context: dialplanContext, extension: dialExtension },
+        function continueDialplan(returnChannelId, dialplanContext, returnDialExtension) {
+            logger.info(`Перенаправляем вызов в по нужному маршруту ${returnChannelId}  ${dialplanContext}  ${returnDialExtension}`);
+	    logger.info(`${util.inspect(dialTrunk)}`);
+	    delete dialTrunk[returnChannelId];
+            ari.channels.continueInDialplan({ channelId: returnChannelId, context: dialplanContext, extension: returnDialExtension },
                 function(err) {
                     logger.info(`Ошибка отправки вызова через ari ${err}`);
                 }

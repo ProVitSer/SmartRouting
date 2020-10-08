@@ -43,7 +43,7 @@ app.get('/send3cxIdModelId*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
     logger.info(queryData);
-    setTimeout(search3cxId, 5000, queryData.incomingNumber.slice(1), queryData.unicueid);
+    setTimeout(search3cxId, 10000, queryData.incomingNumber.slice(1), queryData.unicueid);
     //search3cxId(queryData.incomingNumber.slice(1), queryData.unicueid);
 });
 
