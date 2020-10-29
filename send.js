@@ -29,14 +29,14 @@ app.get('/sendNotWorkinTimeInfo*', (req, res) => {
         incomingNumber = queryData.incomingNumber
     }
     soap.getNumber(incomingNumber, dialExtension, timestamp)
-    .then(
-    	result => {
-          logger.info(result)
-    	}
-    )
-    .catch(error => {
-    	logger.error(error)
-    });
+        .then(
+            result => {
+                logger.info(result)
+            }
+        )
+        .catch(error => {
+            logger.error(error)
+        });
 });
 
 app.get('/send3cxIdModelId*', (req, res) => {
@@ -51,10 +51,20 @@ app.get('/send3cxIdModelId*', (req, res) => {
 const search3cxId = (incomingNumber, unicueid) => {
     db.any(`SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1);`)
         .then(
-            queue => {
+            unicue3cxId => {
                 logger.info(queue);
                 logger.info(queue[0].call_id, unicueid)
-                soap.sendInfoAfterHangup(unicueid, queue[0].call_id);
+                    //soap.sendInfoAfterHangup(unicueid, queue[0].call_id);
+                db.any(`select dn,display_name from cl_party_info WHERE id = (select info_id from cl_participants WHERE call_id = ${unicue3cxId[0].call_id} ORDER BY info_id DESC LIMIT 1);`)
+                    .then(
+                        outboundRouting => {
+                            if (outboundRouting[0].dn && outboundRouting[0].dn.length > 4 && outboundRouting[0].display_name.length > 4) {
+                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, '111');
+                            } else {
+                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, '000');
+                            }
+                        }
+                    )
             }
         )
         .catch(error => {
