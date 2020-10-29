@@ -54,7 +54,6 @@ const search3cxId = (incomingNumber, unicueid) => {
             unicue3cxId => {
                 logger.info(queue);
                 logger.info(queue[0].call_id, unicueid)
-                    //soap.sendInfoAfterHangup(unicueid, queue[0].call_id);
                 db.any(`select dn,display_name from cl_party_info WHERE id = (select info_id from cl_participants WHERE call_id = ${unicue3cxId[0].call_id} ORDER BY info_id DESC LIMIT 1);`)
                     .then(
                         outboundRouting => {
