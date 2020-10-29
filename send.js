@@ -58,7 +58,7 @@ const search3cxId = (incomingNumber, unicueid) => {
                     .then(
                         outboundRouting => {
                             if (outboundRouting[0].dn && outboundRouting[0].dn.length > 4 && outboundRouting[0].display_name.length > 4) {
-                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, '111');
+                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, outboundRouting[0].display_name);
                             } else {
                                 soap.sendInfoAfterHangup(unicueid, queue[0].call_id, '000');
                             }
