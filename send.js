@@ -1,5 +1,6 @@
 "use strict";
 const Soap = require('./soap'),
+    trunk = require('./trunk'),
     logger = require('./logger/logger'),
     util = require('util'),
     url = require(`url`),
@@ -52,15 +53,16 @@ const search3cxId = (incomingNumber, unicueid) => {
     db.any(`SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1);`)
         .then(
             unicue3cxId => {
-                logger.info(queue);
-                logger.info(queue[0].call_id, unicueid)
-                db.any(`select dn,display_name from cl_party_info WHERE id = (select info_id from cl_participants WHERE call_id = ${unicue3cxId[0].call_id} ORDER BY info_id DESC LIMIT 1);`)
+                logger.info(unicue3cxId);
+                logger.info(unicue3cxId[0].call_id, unicueid)
+                db.any(`select cl_party_info.dn,cl_party_info.display_name, cl_participants.start_time from cl_party_info, cl_participants WHERE cl_party_info.id = (select info_id from cl_participants WHERE call_id = ${unicue3cxId[0].call_id} ORDER BY info_id DESC LIMIT 1) and  cl_participants.id = (select info_id from cl_participants WHERE call_id = ${unicue3cxId[0].call_id} ORDER BY info_id DESC LIMIT 1);`)
                     .then(
                         outboundRouting => {
+                            logger.info(outboundRouting[0].dn, outboundRouting[0].display_name, outboundRouting[0].start_time, unicueid)
                             if (outboundRouting[0].dn && outboundRouting[0].dn.length > 4 && outboundRouting[0].display_name.length > 4) {
-                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, outboundRouting[0].display_name);
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, outboundRouting[0].display_name, trunk.idTrunk3CX[outboundRouting[0].dn], outboundRouting[0].start_time);
                             } else {
-                                soap.sendInfoAfterHangup(unicueid, queue[0].call_id, '000');
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, '000', '000', '000');
                             }
                         }
                     )

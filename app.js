@@ -5,7 +5,7 @@ const convert = require('xml-js'),
     moment = require('moment'),
     Soap = require('./soap'),
     logger = require('./logger/logger'),
-    trunkDialplan = require('./trunk'),
+    trunk = require('./trunk'),
     config = require(`./config/config`);
 
 const LOCAL_ROUTING = 'RouteToLocalUser';
@@ -20,18 +20,12 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                 let timestamp = moment().format("YYYY-MM-DDTHH:mm:ss");
                 channelId = event.channel.id;
                 logger.info(`Вызов попал в Stasis ${util.inspect(event)}`);
-                if (event.channel.dialplan.context == 'beronet') {
-                    dialExtension = event.args[0];
-		    dialTrunk[channelId] = { 'context': event.args[0]};
-                } else {
-                    dialExtension = trunkDialplan[event.channel.dialplan.context];
-		    dialTrunk[channelId] = { 'context': event.channel.dialplan.context};
-                }
-                if (event.channel.caller.number.length == 10) {
-                    incomingNumber = '8' + event.channel.caller.number
-                } else {
-                    incomingNumber = event.channel.caller.number.replace("7", "8").replace(/\D+/g, "")
-                }
+                event.channel.dialplan.context == 'beronet' ?
+                    (dialExtension = event.args[0],
+                        dialTrunk[channelId] = { 'context': event.args[0] }) :
+                    (dialExtension = trunk.trunkDialplan[event.channel.dialplan.context],
+                        dialTrunk[channelId] = { 'context': event.channel.dialplan.context });
+                incomingNumber = event.channel.caller.number.length == 10 ? '8' + event.channel.caller.number : event.channel.caller.number.replace("7", "8").replace(/\D+/g, "")
                 logger.info(`${incomingNumber} ${timestamp} ${dialExtension} ${channelId}`);
                 soap.getNumber(incomingNumber, dialExtension, timestamp, channelId)
                     .then(
@@ -41,14 +35,11 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
                             jsonResult = jsonResult['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text'].split(';');
                             logger.info(`После преобразования получаем объект в котором находиться внутренний номер или  его отсутствие ${jsonResult}`);
                             if (jsonResult && jsonResult[0].length == 3 && jsonResult[0] != "000") {
-                                //let returnDialExtension = jsonResult[0];
-                                //let returnChannelId = jsonResult[1];
                                 logger.info(`Был найден привязанный внутренний номер ${jsonResult[0]} ${jsonResult[1]} вызов пошел по маршруту ${LOCAL_ROUTING}`);
                                 continueDialplan(jsonResult[1], LOCAL_ROUTING, jsonResult[0]);
                             } else {
                                 logger.info(`Привязка не найдена ${jsonResult[1]} вызов пошел по маршруту ${DEFAULT_ROUTING}`);
-                                //let returnChannelId = jsonResult[1];
-                                continueDialplan(jsonResult[1], DEFAULT_ROUTING,dialExtension);
+                                continueDialplan(jsonResult[1], DEFAULT_ROUTING, dialExtension);
                             }
                         }
                     )
@@ -61,8 +52,8 @@ client.connect(config.ari.host, config.ari.username, config.ari.secret,
 
         function continueDialplan(returnChannelId, dialplanContext, returnDialExtension) {
             logger.info(`Перенаправляем вызов в по нужному маршруту ${returnChannelId}  ${dialplanContext}  ${returnDialExtension}`);
-	    logger.info(`${util.inspect(dialTrunk)}`);
-	    delete dialTrunk[returnChannelId];
+            logger.info(`${util.inspect(dialTrunk)}`);
+            delete dialTrunk[returnChannelId];
             ari.channels.continueInDialplan({ channelId: returnChannelId, context: dialplanContext, extension: returnDialExtension },
                 function(err) {
                     logger.info(`Ошибка отправки вызова через ari ${err}`);

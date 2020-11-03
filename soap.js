@@ -63,6 +63,8 @@ class Soap {
                       <ret:ID>${params[0]}</ret:ID>
                       <ret:ID3CX>${params[1]}</ret:ID3CX>
                       <ret:Number>${params[2]}</ret:Number>
+                      <ret:OutNumber>${params[3]}</ret:OutNumber>
+                      <ret:DateTime>${params[4]}</ret:DateTime>
                    </ret:SetID>
                   </soap:Body>
                 </soap:Envelope>`
