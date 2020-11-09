@@ -63,6 +63,7 @@ class Soap {
                       <ret:ID>${params[0]}</ret:ID>
                       <ret:ID3CX>${params[1]}</ret:ID3CX>
                       <ret:Number>${params[2]}</ret:Number>
+                      <ret:DobNumber>${params[2]}</ret:DobNumber>
                       <ret:OutNumber>${params[3]}</ret:OutNumber>
                       <ret:DateTime>${params[4]}</ret:DateTime>
                    </ret:SetID>
@@ -78,7 +79,7 @@ class Soap {
                 //'Authorization': auth
             }
         }
-        logger.info(`Отправляем информацию с данными 3cx\module id ${xml}`);
+        logger.info(`Отправляем информацию с данными 3cx module id ${xml}`);
         const res = await axios.post(this.url, xml, config)
         const result = await res;
 
@@ -90,6 +91,43 @@ class Soap {
         return result.data;
     };
 
+    async sendInfoDialLocalExtension(...params) {
+        logger.info(`sendInfoAfterHangup данные  ${params}`);
+        let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
+
+        let xml = `<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ret="ReturnNumber">
+                <soap:Header/>
+                  <soap:Body>
+                    <ret:SetNumber>
+                        <ret:ID>${params[0]}</ret:ID>
+                        <ret:InNumber>${params[1]}</ret:InNumber>
+                        <ret:DobNumber>${params[2]}</ret:DobNumber>
+                        <ret:OurNumber>${params[3]}</ret:OurNumber>
+                        <ret:DateTime>${params[4]}</ret:DateTime>
+                    </ret:SetNumber>
+                  </soap:Body>
+                </soap:Envelope>`
+
+
+        let config = {
+            headers: {
+                'User-Agent': 'icepartners/0.0.1',
+                'Content-Type': 'application/soap+xml;charset=utf-8',
+                'Content-Length': xml.length,
+                //'Authorization': auth
+            }
+        }
+        logger.info(`Отправляем информацию с данными при внутреннем наборе ${xml}`);
+        const res = await axios.post(this.url, xml, config)
+        const result = await res;
+
+        logger.info(`Получили результат отправленную информацию ${result.data}`);
+        if (!result) {
+            logger.error('Отсутствует результат');
+            return [];
+        }
+        return result.data;
+    };
 };
 
 module.exports = Soap;
