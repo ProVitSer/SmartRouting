@@ -1,7 +1,4 @@
 "use strict";
-
-const { query } = require('express');
-
 const Soap = require('./soap'),
     trunk = require('./trunk'),
     logger = require('./logger/logger'),
@@ -69,9 +66,10 @@ const search3cxInfoMobileRedirection = (incomingNumber, unicueid) => {
                         outboundRouting => {
                             logger.info(outboundRouting[0].dn, outboundRouting[0].display_name, outboundRouting[0].start_time, unicueid)
                             if (outboundRouting[0].dn && outboundRouting[0].dn.length > 4 && outboundRouting[0].display_name.length > 4) {
-                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, trunk.idTrunk3CX[outboundRouting[0].dn], outboundRouting[0].display_name, outboundRouting[0].start_time);
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, outboundRouting[0].display_name, '000', trunk.idTrunk3CX[outboundRouting[0].dn], outboundRouting[0].start_time);
                             } else {
-                                search3cxInfoExtensionAnswer(unicueid, unicue3cxId[0].call_id, incomingNumber, outboundRouting[0].dn, outboundRouting[0].start_time);
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, '000', outboundRouting[0].dn, '000', outboundRouting[0].start_time);
+                                // search3cxInfoExtensionAnswer(unicueid, unicue3cxId[0].call_id, incomingNumber, outboundRouting[0].dn, outboundRouting[0].start_time);
                             }
                         }
                     )
@@ -82,23 +80,23 @@ const search3cxInfoMobileRedirection = (incomingNumber, unicueid) => {
         });
 };
 
-const search3cxInfoExtensionAnswer = (unicueid, unicue3cxId, incomingNumber, extension, startTime) => {
-    db.any(`SELECT did_number FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1;`)
-        .then(
-            localRouting => {
-                logger.info(unicueid, unicue3cxId, localRouting[0].did_number, extension, startTime);
-                if (localRouting[0].did_number.length < 8) {
-                    if (localRouting[0].did_number == '2420102') {
-                        soap.sendInfoAfterHangup(unicueid, unicue3cxId, '7351' + localRouting[0].did_number, extension, startTime);
-                    } else {
-                        soap.sendInfoAfterHangup(unicueid, unicue3cxId, '7495' + localRouting[0].did_number, extension, startTime);
-                    }
-                } else {
-                    soap.sendInfoAfterHangup(unicueid, unicue3cxId, localRouting[0].did_number, extension, startTime);
-                }
-            }
-        )
-}
+// const search3cxInfoExtensionAnswer = (unicueid, unicue3cxId, incomingNumber, extension, startTime) => {
+//     db.any(`SELECT did_number FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1;`)
+//         .then(
+//             localRouting => {
+//                 logger.info(unicueid, unicue3cxId, localRouting[0].did_number, extension, startTime);
+//                 if (localRouting[0].did_number.length < 8) {
+//                     if (localRouting[0].did_number == '2420102') {
+//                         soap.sendInfoAfterHangup(unicueid, unicue3cxId, '7351' + localRouting[0].did_number, extension, startTime);
+//                     } else {
+//                         soap.sendInfoAfterHangup(unicueid, unicue3cxId, '7495' + localRouting[0].did_number, extension, startTime);
+//                     }
+//                 } else {
+//                     soap.sendInfoAfterHangup(unicueid, unicue3cxId, localRouting[0].did_number, extension, startTime);
+//                 }
+//             }
+//         )
+// }
 
 const server = app.listen(port, (error) => {
     if (error) return logger.error(`Error: ${error}`);

@@ -63,9 +63,9 @@ class Soap {
                       <ret:ID>${params[0]}</ret:ID>
                       <ret:ID3CX>${params[1]}</ret:ID3CX>
                       <ret:Number>${params[2]}</ret:Number>
-                      <ret:DobNumber>${params[2]}</ret:DobNumber>
-                      <ret:OutNumber>${params[3]}</ret:OutNumber>
-                      <ret:DateTime>${params[4]}</ret:DateTime>
+                      <ret:DobNumber>${params[3]}</ret:DobNumber>
+                      <ret:OutNumber>${params[4]}</ret:OutNumber>
+                      <ret:DateTime>${params[5]}</ret:DateTime>
                    </ret:SetID>
                   </soap:Body>
                 </soap:Envelope>`
@@ -103,7 +103,7 @@ class Soap {
                         <ret:InNumber>${params[1]}</ret:InNumber>
                         <ret:DobNumber>${params[2]}</ret:DobNumber>
                         <ret:OurNumber>${params[3]}</ret:OurNumber>
-                        <ret:DateTime>${params[4]}</ret:DateTime>
+                        <ret:DateTimeIn>${params[4]}</ret:DateTime>
                     </ret:SetNumber>
                   </soap:Body>
                 </soap:Envelope>`
