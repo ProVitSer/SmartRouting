@@ -40,8 +40,9 @@ app.get('/sendNotWorkinTimeInfo*', (req, res) => {
 app.get('/send3cxIdModelId*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
-    logger.info(queryData);
-    setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber.slice(1), queryData.unicueid);
+    logger.info(`send3cxIdModelId ${queryData}`);
+    setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber, queryData.unicueid);
+    //В случае если передается + (только тестовые транки) setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber.slice(1), queryData.unicueid);
 });
 
 //Set(C_RESULT=${CURL(localhost:3001/sendDialExtensionInfo?incomingNumber=${CALLERID(num)}&context=${customContext}&extension=${EXTEN}&unicueid=${UNIQUEID})});
@@ -50,6 +51,7 @@ app.get('/sendDialExtensionInfo*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     let incomingNumber;
     res.sendStatus(200);
+    logger.info(`sendDialExtensionInfo ${queryData}`);
     let dialExtension = queryData.context.length > 7 ? trunk.trunkLocalExtension[queryData.context] : "8495" + queryData.context;
     queryData.incomingNumber.length == 10 ? incomingNumber = '8' + queryData.incomingNumber : incomingNumber = queryData.incomingNumber;
     soap.sendInfoDialLocalExtension(queryData.unicueid, incomingNumber, queryData.extension, dialExtension, moment().format("YYYY-MM-DDTHH:mm:ss"));
@@ -66,9 +68,9 @@ const search3cxInfoMobileRedirection = (incomingNumber, unicueid) => {
                         outboundRouting => {
                             logger.info(outboundRouting[0].dn, outboundRouting[0].display_name, outboundRouting[0].start_time, unicueid)
                             if (outboundRouting[0].dn && outboundRouting[0].dn.length > 4 && outboundRouting[0].display_name.length > 4) {
-                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, outboundRouting[0].display_name, '000', trunk.idTrunk3CX[outboundRouting[0].dn], outboundRouting[0].start_time);
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, outboundRouting[0].display_name, '000', trunk.idTrunk3CX[outboundRouting[0].dn], moment(outboundRouting[0].start_time).format("YYYY-MM-DDTHH:mm:ss"));
                             } else {
-                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, '000', outboundRouting[0].dn, '000', outboundRouting[0].start_time);
+                                soap.sendInfoAfterHangup(unicueid, unicue3cxId[0].call_id, '000', outboundRouting[0].dn, '000', moment(outboundRouting[0].start_time).format("YYYY-MM-DDTHH:mm:ss"));
                                 // search3cxInfoExtensionAnswer(unicueid, unicue3cxId[0].call_id, incomingNumber, outboundRouting[0].dn, outboundRouting[0].start_time);
                             }
                         }

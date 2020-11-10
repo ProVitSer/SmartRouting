@@ -11,9 +11,34 @@ class Soap {
         this.url = url;
     }
 
+    async axiosReq(xml) {
+
+        let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
+        let config = {
+            method: 'post',
+            url: this.url,
+            headers: {
+                'User-Agent': 'icepartners/0.0.1',
+                'Content-Type': 'application/soap+xml;charset=utf-8',
+                'Content-Length': xml.length,
+                //'Authorization': auth
+            },
+            data: xml
+        };
+
+        logger.info(`Отправляем запрос на получении добавочного для даннх ${xml}`);
+        const res = await axios(config);
+        const result = await res;
+
+        if (!result) {
+            logger.info('Отсутствует результат');
+        } else {
+            logger.info(result);
+        }
+    }
+
     async getNumber(...params) {
         logger.info(`getNumber данные  ${params}`);
-        let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
 
         //params[0] - Входящий номер, params[1] - номер куда звонят, params[2] время поступления входящего вызова
         //Парсинг ответа ['soap:Envelope']['soap:Body']['m:ReturnNumberResponse']['m:return']['_text']
@@ -28,33 +53,13 @@ class Soap {
               <ret:ID>${params[3]}</ret:ID>
 		   </ret:ReturnNumber>
 		  </soap:Body>
-		</soap:Envelope>`
+        </soap:Envelope>`
 
-
-        let config = {
-            headers: {
-                'User-Agent': 'icepartners/0.0.1',
-                'Content-Type': 'application/soap+xml;charset=utf-8',
-                'Content-Length': xml.length,
-                //'Authorization': auth
-            }
-        }
-
-        logger.info(`Отправляем запрос на получении добавочного для даннх ${xml}`);
-        const res = await axios.post(this.url, xml, config)
-        const result = await res;
-
-        logger.info(`Получили результат на запрос получения добавочного ${result.data}`);
-        if (!result) {
-            logger.error('Отсутствует результат');
-            return [];
-        }
-        return result.data;
+        this.axiosReq(xml);
     };
 
     async sendInfoAfterHangup(...params) {
         logger.info(`sendInfoAfterHangup данные  ${params}`);
-        let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
 
         let xml = `<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ret="ReturnNumber">
                 <soap:Header/>
@@ -70,30 +75,11 @@ class Soap {
                   </soap:Body>
                 </soap:Envelope>`
 
-
-        let config = {
-            headers: {
-                'User-Agent': 'icepartners/0.0.1',
-                'Content-Type': 'application/soap+xml;charset=utf-8',
-                'Content-Length': xml.length,
-                //'Authorization': auth
-            }
-        }
-        logger.info(`Отправляем информацию с данными 3cx module id ${xml}`);
-        const res = await axios.post(this.url, xml, config)
-        const result = await res;
-
-        logger.info(`Получили результат отправленную информацию ${result.data}`);
-        if (!result) {
-            logger.error('Отсутствует результат');
-            return [];
-        }
-        return result.data;
+        this.axiosReq(xml);
     };
 
     async sendInfoDialLocalExtension(...params) {
-        logger.info(`sendInfoAfterHangup данные  ${params}`);
-        let auth = "Basic " + new Buffer(`${this.username}:${this.password}`).toString("base64");
+        logger.info(`sendInfoDialLocalExtension данные  ${params}`);
 
         let xml = `<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ret="ReturnNumber">
                 <soap:Header/>
@@ -103,30 +89,12 @@ class Soap {
                         <ret:InNumber>${params[1]}</ret:InNumber>
                         <ret:DobNumber>${params[2]}</ret:DobNumber>
                         <ret:OurNumber>${params[3]}</ret:OurNumber>
-                        <ret:DateTimeIn>${params[4]}</ret:DateTime>
+                        <ret:DateTimeIn>${params[4]}</ret:DateTimeIn>
                     </ret:SetNumber>
                   </soap:Body>
                 </soap:Envelope>`
 
-
-        let config = {
-            headers: {
-                'User-Agent': 'icepartners/0.0.1',
-                'Content-Type': 'application/soap+xml;charset=utf-8',
-                'Content-Length': xml.length,
-                //'Authorization': auth
-            }
-        }
-        logger.info(`Отправляем информацию с данными при внутреннем наборе ${xml}`);
-        const res = await axios.post(this.url, xml, config)
-        const result = await res;
-
-        logger.info(`Получили результат отправленную информацию ${result.data}`);
-        if (!result) {
-            logger.error('Отсутствует результат');
-            return [];
-        }
-        return result.data;
+        this.axiosReq(xml);
     };
 };
 
