@@ -40,7 +40,6 @@ app.get('/sendNotWorkinTimeInfo*', (req, res) => {
 app.get('/send3cxIdModelId*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
-    logger.info(`send3cxIdModelId ${queryData}`);
     setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber, queryData.unicueid);
     //В случае если передается + (только тестовые транки) setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber.slice(1), queryData.unicueid);
 });
@@ -51,7 +50,6 @@ app.get('/sendDialExtensionInfo*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     let incomingNumber;
     res.sendStatus(200);
-    logger.info(`sendDialExtensionInfo ${queryData}`);
     let dialExtension = queryData.context.length > 7 ? trunk.trunkLocalExtension[queryData.context] : "8495" + queryData.context;
     queryData.incomingNumber.length == 10 ? incomingNumber = '8' + queryData.incomingNumber : incomingNumber = queryData.incomingNumber;
     soap.sendInfoDialLocalExtension(queryData.unicueid, incomingNumber, queryData.extension, dialExtension, moment().format("YYYY-MM-DDTHH:mm:ss"));
