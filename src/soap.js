@@ -1,8 +1,8 @@
 'use strict';
 const axios = require('axios'),
     util = require('util'),
-    logger = require(`./logger/logger`),
-    config = require(`./config/config`);
+    logger = require(`../logger/logger`),
+    config = require(`../config/config`);
 
 class Soap {
     constructor(username = config.webServer.username, password = config.webServer.secret, url = config.webServer.url) {
