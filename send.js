@@ -40,24 +40,15 @@ app.get('/sendNotWorkinTimeInfo*', (req, res) => {
 app.get('/sendGroupCallInfo*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
-    setTimeout(searchInDB.search3cxGroupCall(), 10000, queryData.incomingNumber, queryData.unicueid);
+    setTimeout(searchInDB.search3cxGroupCall, 10000, queryData.incomingNumber, queryData.unicueid);
 });
 
 //Set(C_RESULT=${CURL(localhost:3001/sendExtensionCallInfo?incomingNumber=${CALLERID(num)}&unicueid=${UNIQUEID}&extension=${EXTEN})});
 app.get('/sendExtensionCallInfo*', (req, res) => {
     let queryData = url.parse(req.url, true).query;
     res.sendStatus(200);
-    setTimeout(searchInDB.search3cxExtensionCall(), 10000, queryData.incomingNumber, queryData.extension, queryData.unicueid);
+    setTimeout(searchInDB.search3cxExtensionCall, 10000, queryData.incomingNumber, queryData.extension, queryData.unicueid);
 });
-
-//Set(C_RESULT=${CURL(localhost:3001/send3cxIdModelId?incomingNumber=${CALLERID(num)}&unicueid=${UNIQUEID})});
-/*app.get('/send3cxIdModelId*', (req, res) => {
-    let queryData = url.parse(req.url, true).query;
-    res.sendStatus(200);
-    setTimeout(searchInDB.search3cxInfoMobileRedirection, 10000, queryData.incomingNumber, queryData.unicueid);
-    
-    //В случае если передается + (только тестовые транки) setTimeout(search3cxInfoMobileRedirection, 10000, queryData.incomingNumber.slice(1), queryData.unicueid);
-});*/
 
 //Set(C_RESULT=${CURL(localhost:3001/sendDialExtensionInfo?incomingNumber=${CALLERID(num)}&context=${customContext}&extension=${EXTEN}&unicueid=${UNIQUEID})});
 //Set(C_RESULT=${CURL(localhost:3001/sendDialExtensionInfo?incomingNumber=${CALLERID(num)}&context=${CONTEXT}&extension=${EXTEN}&unicueid=${UNIQUEID})});

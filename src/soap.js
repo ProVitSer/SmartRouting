@@ -46,11 +46,12 @@ class Soap {
         const res = await axios(config);
         const result = await res;
 
+        logger.info(`Получили результат отправленную информацию ${result.data}`);
         if (!result) {
-            logger.info('Отсутствует результат');
-        } else {
-            return result;
+            logger.error('Отсутствует результат');
+            return [];
         }
+        return result.data;
 
     };
 
@@ -88,11 +89,12 @@ class Soap {
         const res = await axios(config);
         const result = await res;
 
+        logger.info(`Получили результат отправленную информацию ${result.data}`);
         if (!result) {
-            logger.info('Отсутствует результат');
-        } else {
-            return result;
+            logger.error('Отсутствует результат');
+            return [];
         }
+        return result.data;
     };
 
     async sendInfoDialLocalExtension(...params) {
@@ -128,11 +130,12 @@ class Soap {
         const res = await axios(config);
         const result = await res;
 
+        logger.info(`Получили результат отправленную информацию ${result.data}`);
         if (!result) {
-            logger.info('Отсутствует результат');
-        } else {
-            return result;
+            logger.error('Отсутствует результат');
+            return [];
         }
+        return result.data;
     };
 };
 

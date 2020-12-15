@@ -9,12 +9,14 @@ const Soap = require('./soap'),
 const soap = new Soap();
 
 const search3cxExtensionCall = (incomingNumber, extension, unicueid) => {
+    incomingNumber = incomingNumber.trim();
+    extension = extension.trim();
+    logger.info(incomingNumber, extension, unicueid)
     db.any(`SELECT dn FROM public.cl_party_info where id IN (SELECT info_id FROM public.cl_participants WHERE call_id = (SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1)) and answer_time is not null) and dn like '%${extension}';`)
         .then(
             extension3cx => {
                 logger.info(extension3cx);
-                logger.info(extension3cx[0].dn, incomingNumber, extension, unicueid)
-                if (extension3cx[0].dn == '') {
+                if (extension3cx.length == 0) {
                     search3cxInfoMobileRedirection(incomingNumber, unicueid);
                 } else {
                     db.any(`SELECT call_id FROM cl_participants WHERE info_id = (SELECT id FROM cl_party_info WHERE caller_number like '%${incomingNumber}' ORDER BY id DESC LIMIT 1);`)
@@ -34,11 +36,12 @@ const search3cxExtensionCall = (incomingNumber, extension, unicueid) => {
 };
 
 const search3cxGroupCall = (incomingNumber, unicueid) => {
+    incomingNumber = incomingNumber.trim();
+    logger.info(incomingNumber, unicueid)
     db.any(`SELECT time_start,to_dialednum FROM public.callcent_queuecalls where from_userpart like '%${incomingNumber}'  ORDER BY idcallcent_queuecalls DESC LIMIT 1;`)
         .then(
             groupExtension3CX => {
                 logger.info(groupExtension3CX);
-                logger.info(groupExtension3CX[0].dn, incomingNumber, extension, unicueid)
                 if (groupExtension3CX[0].to_dialednum == '') {
                     search3cxInfoMobileRedirection(incomingNumber, unicueid);
                 } else {
